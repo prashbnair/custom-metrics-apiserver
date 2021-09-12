@@ -18,6 +18,9 @@ package cmd
 
 import (
 	"fmt"
+	"k8s.io/component-base/metrics/legacyregistry"
+	"k8s.io/klog/v2"
+	"net/http"
 	"sync"
 	"time"
 
@@ -238,6 +241,7 @@ func (b *AdapterBase) Config() (*apiserver.Config, error) {
 // fields, so make sure to only call it just before `Run`.
 // Normal users should not need to call this method -- it's for advanced use cases.
 func (b *AdapterBase) Server() (*apiserver.CustomMetricsAdapterServer, error) {
+	klog.Error("called server method in the builder")
 	if b.server == nil {
 		config, err := b.Config()
 		if err != nil {
@@ -248,6 +252,12 @@ func (b *AdapterBase) Server() (*apiserver.CustomMetricsAdapterServer, error) {
 			b.Name = "custom-metrics-adapter"
 		}
 
+		config.GenericConfig.EnableMetrics = false
+		klog.Error("turning off metrics served by api server")
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", legacyregistry.Handler())
+
+		go http.ListenAndServe(":9090", mux)
 		// we add in the informers if they're not nil, but we don't try and
 		// construct them if the user didn't ask for them
 		server, err := config.Complete(b.informers).New(b.Name, b.cmProvider, b.emProvider)
@@ -280,6 +290,7 @@ func (b *AdapterBase) Informers() (informers.SharedInformerFactory, error) {
 
 // Run runs this custom metrics adapter until the given stop channel is closed.
 func (b *AdapterBase) Run(stopCh <-chan struct{}) error {
+	klog.Error("in the run method of custom metrics server")
 	server, err := b.Server()
 	if err != nil {
 		return err
