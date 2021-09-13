@@ -1,4 +1,4 @@
-module sigs.k8s.io/custom-metrics-apiserver
+module github.com/prashbnair/custom-metrics-apiserver
 
 go 1.16
 
