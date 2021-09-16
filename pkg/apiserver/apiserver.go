@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/client-go/informers"
+	"k8s.io/klog/v2"
 
 	cminstall "k8s.io/metrics/pkg/apis/custom_metrics/install"
 	eminstall "k8s.io/metrics/pkg/apis/external_metrics/install"
@@ -99,6 +100,7 @@ func (c completedConfig) New(name string, customMetricsProvider provider.CustomM
 	}
 
 	if customMetricsProvider != nil {
+		klog.Info("From custom api server: installing custom metrics API")
 		if err := s.InstallCustomMetricsAPI(); err != nil {
 			return nil, err
 		}
