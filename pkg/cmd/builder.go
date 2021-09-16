@@ -18,9 +18,7 @@ package cmd
 
 import (
 	"fmt"
-	"k8s.io/component-base/metrics/legacyregistry"
 	"k8s.io/klog/v2"
-	"net/http"
 	"sync"
 	"time"
 
@@ -251,13 +249,6 @@ func (b *AdapterBase) Server() (*apiserver.CustomMetricsAdapterServer, error) {
 		if b.Name == "" {
 			b.Name = "custom-metrics-adapter"
 		}
-
-		config.GenericConfig.EnableMetrics = false
-		klog.Error("turning off metrics served by api server")
-		mux := http.NewServeMux()
-		mux.Handle("/metrics", legacyregistry.Handler())
-
-		go http.ListenAndServe(":9090", mux)
 		// we add in the informers if they're not nil, but we don't try and
 		// construct them if the user didn't ask for them
 		server, err := config.Complete(b.informers).New(b.Name, b.cmProvider, b.emProvider)
